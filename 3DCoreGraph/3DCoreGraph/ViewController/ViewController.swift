@@ -21,6 +21,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     var button = UIButton(type:.system)
     var node3D: SCNNode = SCNNode()
     var buttonName: KeypointsType = .TW
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -38,7 +39,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         sceneView.allowsCameraControl = true
         sceneView.autoenablesDefaultLighting = true
-        
         
         fetchDataTW() { [weak self] in
             self?.fetchDataCA()
@@ -153,9 +153,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         let scale = min(scaleX, scaleY, scaleZ)
         
         // Apply scaling and translation
-        let offsetX = (size.x - boundingBoxWidth * scale) / 0.5 - minX * scale
-        let offsetY = (size.y - boundingBoxHeight * scale) / 0.5 - minY * scale
-        let offsetZ = (size.z - boundingBoxDepth * scale) / 0.5 - minZ * scale
+        let offsetX = (size.x - boundingBoxWidth * scale) / 5 - minX * scale
+        let offsetY = (size.y - boundingBoxHeight * scale) / 5 - minY * scale
+        let offsetZ = (size.z - boundingBoxDepth * scale) / 5 - minZ * scale
         return coordinates.map { coordinate in
             let normalizedX = coordinate.x * scale + offsetX
             let normalizedY = coordinate.y * scale + offsetY
@@ -166,19 +166,26 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     func createGeometry(coordinates: [SCNVector3]) -> SCNGeometry {
         let normalizedCoordinates = normalizingCoordinates(coordinates: coordinates, size: SCNVector3(50, 50, 100))
-        let indices = Array(Int32(0)...Int32(normalizedCoordinates.count-1))
+        var indices: [Int32] = []
+        for i in 0..<normalizedCoordinates.count - 1 {
+            indices.append(Int32(i))
+            indices.append(Int32(i + 1))
+        }
+        print(indices)
         let geometryElement = SCNGeometryElement(indices: indices,
-                                                 primitiveType: .triangles)
-        
+                                                 primitiveType: .line)
         
         let geometry = SCNGeometry(sources: [SCNGeometrySource(vertices: normalizedCoordinates)], elements: [geometryElement])
         
         let material = SCNMaterial()
-        material.diffuse.contents = UIColor.blue
+        material.emission.contents = UIColor.red
+        material.emission.intensity = 1
         geometry.materials = [material]
         
         return geometry
     }
+    
+    
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
